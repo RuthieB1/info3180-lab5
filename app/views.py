@@ -6,9 +6,9 @@ This file creates your application.
 """
 
 from app import app, db
-from flask import render_template, request, jsonify, send_file
+from flask import render_template, request, jsonify, send_file, url_for, send_from_directory
 import os
-from app.models import Movie
+from app.models import Movies
 from app.forms import MovieForm
 from werkzeug.utils import secure_filename
 from flask_wtf.csrf import generate_csrf
@@ -22,8 +22,23 @@ import datetime
 def index():
     return jsonify(message="This is the beginning of our API")
 
-@app.route('/api/v1/movies', methods=['POST'])
+@app.route('/api/v1/movies', methods=['GET','POST'])
 def movies():
+    if request.method == 'GET':
+        movies = db.session.execute(db.select(Movies)).scalars()
+        print(movies)
+        movie_list =[]
+        for movie in movies:
+            movie_list.append(
+            {
+                "id": movie.id,
+                "title": movie.title,   
+                "description": movie.description,
+                "poster": url_for('get_image', filename=movie.poster)
+            }
+        )
+        print(movie_list)
+        return jsonify(movies=movie_list)
     form = MovieForm()
     if form.validate_on_submit():
         title = request.form['title']
@@ -32,7 +47,7 @@ def movies():
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        newmovie = Movie(title, description, filename, created_at=datetime.datetime.now())
+        newmovie = Movies(title, description, filename, created_at=datetime.datetime.now())
         db.session.add(newmovie)
         db.session.commit()
 
@@ -52,6 +67,11 @@ def movies():
 @app.route('/api/v1/csrf-token', methods=['GET']) 
 def get_csrf():     
     return jsonify({'csrf_token': generate_csrf()}) 
+
+@app.route("/api/v1/posters/<filename>")
+def get_image(filename):
+    return send_from_directory(os.path.join(os.getcwd(), app.config['UPLOAD_FOLDER']), filename)
+
     ###
 # The functions below should be applicable to all Flask apps.
 ###

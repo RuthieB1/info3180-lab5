@@ -34,6 +34,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 let csrf_token = ref("");
+
 onMounted(() => {
   getCsrfToken();
 });
@@ -54,15 +55,13 @@ function saveMovie() {
     })
     .then(function (data) {
       // display a success message
-      console.log("heeeeeeeey");
       alertcontainer.classList.remove("hide");
-
-      if (Array.isArray(data)) {
+      if (Array.isArray(data.errors)) {
         alertcontainer.innerHTML = "";
-        self.errorlist = data;
+        self.errorlist = data.errors;
         alertcontainer.classList.remove("alert-success");
         alertcontainer.classList.add("alert-danger");
-        let errorlist = data;
+        let errorlist = data.errors;
         let fields = [];
         for (let err = 0; err < errorlist.length; err++) {
           const erroritem = document.createElement("li");

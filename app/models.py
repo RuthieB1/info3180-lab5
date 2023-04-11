@@ -2,7 +2,7 @@
 from . import db
 
 
-class Movie(db.Model):
+class Movies(db.Model):
     __tablename__ = 'movies'
 
     id = db.Column(db.Integer, primary_key=True)
